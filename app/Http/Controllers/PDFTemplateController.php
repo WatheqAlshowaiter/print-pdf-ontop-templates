@@ -5,11 +5,14 @@ namespace App\Http\Controllers;
 use App\Models\PdfTemplate;
 use App\Services\PDFGridService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 
 class PDFTemplateController extends Controller
 {
-    public function __construct(public PDFGridService $pdfGridService) {}
+    public function __construct(public PDFGridService $pdfGridService)
+    {
+    }
 
     public function index()
     {
@@ -57,12 +60,18 @@ class PDFTemplateController extends Controller
         return view('pdf_templates.show', ['template' => $template, 'grid' => $grid]);
     }
 
-    // Delete a PDF template
+    /**
+     * @throws \Throwable
+     */
     public function destroy($id)
     {
         $template = PdfTemplate::query()->findOrFail($id);
-        Storage::delete('public/'.$template->pdf_path);
-        $template->delete();
+
+        DB::transaction(function () use ($template) {
+            Storage::disk('public')->delete($template->pdf_path);
+            Storage::disk('public')->delete($template->grid_pdf_path);
+            $template->delete();
+        });
 
         return redirect()->route('pdf-templates.index')->with('success', 'PDF deleted successfully.');
     }

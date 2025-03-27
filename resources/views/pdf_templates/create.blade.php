@@ -8,7 +8,8 @@
             @csrf
             <div class="form-group">
                 <label for="pdf">Select PDF File:</label>
-                <input type="file" name="pdf" class="form-control" required>
+                <input type="file" name="pdf" class="form-control @error('pdf') is-invalid @enderror"
+                       accept="application/pdf" required>
             </div>
 
             <button type="submit" class="btn btn-success mt-2">Upload PDF & Generate Grid</button>
