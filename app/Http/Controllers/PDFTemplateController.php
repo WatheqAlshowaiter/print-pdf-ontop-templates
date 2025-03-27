@@ -18,7 +18,6 @@ class PDFTemplateController extends Controller
         return view('pdf_templates.index', ['pdfTemplates' => $pdfTemplates]);
     }
 
-    // Show form to upload a new PDF
     public function create()
     {
         return view('pdf_templates.create');

@@ -9,6 +9,7 @@
             <thead>
             <tr>
                 <th>ID</th>
+                <th>File Name</th>
                 <th>PDF File</th>
                 <th>Actions</th>
             </tr>
@@ -17,6 +18,7 @@
             @foreach($pdfTemplates as $template)
                 <tr>
                     <td>{{ $template->id }}</td>
+                    <td>{{ $template->name }}</td>
                     <td>
                         <a href="{{ asset('storage/' . $template->grid_pdf_path) }}" target="_blank">View GRID PDF</a>
                         &nbsp;

@@ -2,7 +2,8 @@
 
 @section('content')
     <div class="container">
-        <h2>Edit PDF: {{ $pdfTemplate->name }} <span class="small text-bg-secondary">#({{ $pdfTemplate->ulid }})</span></h2>
+        <h2>Edit PDF: {{ $pdfTemplate->name }} <span class="small text-bg-secondary">#({{ $pdfTemplate->ulid }})</span>
+        </h2>
 
         <!-- Form to input data for PDF -->
         <form action="{{ route('print-pdfs.update', $pdfTemplate->id) }}" method="POST">
@@ -66,11 +67,11 @@
             <button type="submit" class="btn btn-success">Generate PDF</button>
         </form>
 
-        @if(session('file'))
-            <div class="mt-4">
-                <p>PDF has been generated. <a href="{{ session('file') }}" target="_blank">Click here to view it.</a></p>
-            </div>
-        @endif
+        <br/>
+
+        <embed src="{{ asset('storage/' . $pdfTemplate->grid_pdf_path) }}" type="application/pdf" width="100%"
+               height="600px">
+
     </div>
 
     <script>

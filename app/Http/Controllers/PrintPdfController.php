@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Models\PdfTemplate;
-use Carbon\Carbon;
 use Illuminate\Http\Request;
 use setasign\Fpdi\PdfParser\CrossReference\CrossReferenceException;
 use setasign\Fpdi\PdfParser\Filter\FilterException;
@@ -14,31 +13,12 @@ use setasign\Fpdi\Tcpdf\Fpdi;
 
 class PrintPdfController extends Controller
 {
-    // Show upload form
-    public function showUploadForm()
-    {
-        return view('pdf.upload');
-    }
-
-    // Handle PDF upload
-    public function uploadPDF(Request $request)
-    {
-        $request->validate(['pdf' => 'required|mimes:pdf|max:10240']); // Max 10MB
-        $filename = Carbon::now()->getTimestamp().'.'.$request->pdf->extension();
-        $request->pdf->storeAs('public', $filename);
-
-        return redirect()->route('pdf.edit.form', ['filename' => $filename]);
-    }
-
-    // Show edit form with input fields
     public function edit($pdfTemplateId)
     {
         $pdfTemplate = PdfTemplate::query()->findorFail($pdfTemplateId);
 
         return view('print-pdfs.edit', ['pdfTemplate' => $pdfTemplate]);
     }
-
-    // Add data to PDF
 
     /**
      * @throws CrossReferenceException
