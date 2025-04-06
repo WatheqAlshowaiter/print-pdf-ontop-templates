@@ -17,9 +17,14 @@
                     @foreach(old('data') as $index => $entry)
                         <div class="row mb-2">
                             <div class="col">
-                                <input type="text" name="data[{{ $index }}][value]" placeholder="Label"
-                                       class="form-control @error("data.$index.value") is-invalid @enderror"
-                                       value="{{ old("data.$index.value") }}">
+                                <select name="data[{{ $index }}][value]" class="form-control @error("data.$index.value") is-invalid @enderror">
+                                    <option value="" disabled selected>Select Label</option>
+                                    @foreach (\App\Enums\PdfValues::cases() as $label)
+                                        <option value="{{ $label->name }}" {{ old("data.$index.value") == $label->value ? 'selected' : '' }}>
+                                            {{ $label->value }}
+                                        </option>
+                                    @endforeach
+                                </select>
                                 @error("data.$index.value")
                                 <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
@@ -48,7 +53,14 @@
                 @else
                     <div class="row mb-2">
                         <div class="col">
-                            <input type="text" name="data[0][value]" placeholder="Label" class="form-control">
+                            <select name="data[0][value]" class="form-control @error("data.0.value") is-invalid @enderror">
+                                <option value="" disabled selected>Select Label</option>
+                                @foreach (\App\Enums\PdfValues::cases() as $label)
+                                    <option value="{{ $label->name }}" {{ old("data.0.value") == $label->value ? 'selected' : '' }}>
+                                        {{ $label->value }}
+                                    </option>
+                                @endforeach
+                            </select>
                         </div>
                         <div class="col">
                             <input type="number" name="data[0][x]" placeholder="X Position" class="form-control">
@@ -63,6 +75,7 @@
                 @endif
             </div>
 
+
             <button type="button" onclick="addField()" class="btn btn-secondary">+ Add More</button>
             <button type="submit" class="btn btn-success">Generate PDF</button>
         </form>
@@ -75,15 +88,30 @@
     </div>
 
     <script>
+        @php
+            $labelOptions = collect(\App\Enums\PdfValues::cases())->map(fn($label) => [
+                'value' => $label->value,
+                'name' => $label->name
+            ]);
+        @endphp
+
         let index = document.querySelectorAll('#data-fields .row').length;
+        const labelOptions = @json($labelOptions);
 
         function addField() {
             let container = document.getElementById('data-fields');
             let div = document.createElement('div');
             div.className = "row mb-2";
+            let optionsHtml = `<option value="" disabled selected>Select Label</option>`;
+            labelOptions.forEach(option => {
+                optionsHtml += `<option value="${option.name}">${option.value}</option>`;
+            });
+
             div.innerHTML = `
                 <div class="col">
-                    <input type="text" name="data[${index}][value]" placeholder="Label" class="form-control">
+                <select name="data[${index}][value]" class="form-control">
+                    ${optionsHtml}
+                </select>
                 </div>
                 <div class="col">
                     <input type="number" name="data[${index}][x]" placeholder="X Position" class="form-control">

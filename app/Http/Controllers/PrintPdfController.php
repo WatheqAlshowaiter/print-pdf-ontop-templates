@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\PdfValues;
 use App\Models\PdfTemplate;
 use Illuminate\Http\Request;
 use setasign\Fpdi\PdfParser\CrossReference\CrossReferenceException;
@@ -39,12 +40,29 @@ class PrintPdfController extends Controller
             'data.*.y' => ['required', 'int', 'min:0'],
         ]);
 
+
         $pdfPath = storage_path("app/public/{$request->filename}");
         $outputPath = storage_path("app/public/data_{$request->filename}");
 
-        if (! file_exists($pdfPath)) {
+        if (!file_exists($pdfPath)) {
             return back()->with('error', 'PDF file not found.');
         }
+
+        $variables = [
+            'DATE' => now()->format('Y-m-d'),
+            'INVOICE_NUMBER' => '#123141',
+            'INVOICE_TO' => '#9874621',
+            'SHIP_TO' => 'Some shipment company',
+            'SUB_TOTAL' => 300,
+            'GST_TOTAL' => 150,
+            'TOTAL' => 569,
+        ];
+
+        $filteredData = array_filter($request->data, function ($item) use ($variables) {
+            return isset($variables[$item['value']]);
+        });
+
+        $filteredData = array_values($filteredData);
 
         $pdf = new Fpdi;
         $pdf->setPrintHeader(false);
@@ -61,9 +79,7 @@ class PrintPdfController extends Controller
             $pdf->AddPage($size['orientation'], [$size['width'], $size['height']]);
             $pdf->useTemplate($tplIdx, 0, 0, $size['width'], $size['height']);
 
-            // if ($i == 1) {
-            $this->addDynamicData($pdf, $request->data);
-            // }
+            $this->addDynamicData($pdf, $filteredData, $variables);
         }
 
         $pdf->Output($outputPath, 'F');
@@ -71,12 +87,12 @@ class PrintPdfController extends Controller
         return response()->file($outputPath);
     }
 
-    private function addDynamicData(Fpdi $pdf, $data): void
+    private function addDynamicData(Fpdi $pdf, $data, $variables): void
     {
         $pdf->SetTextColor(0, 0, 0);
         foreach ($data as $item) {
             $pdf->SetXY($item['x'], $item['y']);
-            $pdf->Cell(0, 10, $item['value'], 0, 1);
+            $pdf->Cell(0, 10, $variables[$item['value']], 0, 1);
         }
     }
 }
