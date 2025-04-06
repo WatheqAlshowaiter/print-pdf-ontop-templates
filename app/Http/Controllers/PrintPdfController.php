@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Enums\PdfValues;
 use App\Models\PdfTemplate;
+use App\Services\PdfTemplatePrinterService;
 use Illuminate\Http\Request;
 use setasign\Fpdi\PdfParser\CrossReference\CrossReferenceException;
 use setasign\Fpdi\PdfParser\Filter\FilterException;
@@ -28,7 +29,7 @@ class PrintPdfController extends Controller
      * @throws PdfTypeException
      * @throws FilterException
      */
-    public function update($pdfTemplate, Request $request)
+    public function update($pdfTemplate, Request $request, PdfTemplatePrinterService $printer)
     {
         PdfTemplate::query()->findorFail($pdfTemplate);
 
@@ -56,43 +57,20 @@ class PrintPdfController extends Controller
             'SUB_TOTAL' => 300,
             'GST_TOTAL' => 150,
             'TOTAL' => 569,
+            'QUANTITY' => [
+                10,
+                20,
+                30
+            ],
+            'DESCRIPTION' => [
+                'Desc 10',
+                'Desc 20',
+                'Desc 30'
+            ],
         ];
 
-        $filteredData = array_filter($request->data, function ($item) use ($variables) {
-            return isset($variables[$item['value']]);
-        });
-
-        $filteredData = array_values($filteredData);
-
-        $pdf = new Fpdi;
-        $pdf->setPrintHeader(false);
-        $pdf->setPrintFooter(false);
-        $pdf->SetAutoPageBreak(false, 0);
-        $pdf->SetFont('Helvetica', '', 10);
-
-        $pageCount = $pdf->setSourceFile($pdfPath);
-
-        for ($i = 1; $i <= $pageCount; $i++) {
-            $tplIdx = $pdf->importPage($i);
-            $size = $pdf->getTemplateSize($tplIdx);
-
-            $pdf->AddPage($size['orientation'], [$size['width'], $size['height']]);
-            $pdf->useTemplate($tplIdx, 0, 0, $size['width'], $size['height']);
-
-            $this->addDynamicData($pdf, $filteredData, $variables);
-        }
-
-        $pdf->Output($outputPath, 'F');
+        $printer->generate($pdfPath, $outputPath, $request->data, $variables);
 
         return response()->file($outputPath);
-    }
-
-    private function addDynamicData(Fpdi $pdf, $data, $variables): void
-    {
-        $pdf->SetTextColor(0, 0, 0);
-        foreach ($data as $item) {
-            $pdf->SetXY($item['x'], $item['y']);
-            $pdf->Cell(0, 10, $variables[$item['value']], 0, 1);
-        }
     }
 }

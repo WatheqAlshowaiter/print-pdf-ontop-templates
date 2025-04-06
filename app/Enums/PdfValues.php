@@ -17,6 +17,10 @@ enum PdfValues: string
 
     case TOTAL = 'Total';
 
+    case QUANTITY = 'Quantity';
+
+    case DESCRIPTION = 'Description';
+
     /**
      * Find ENUM by name or value
      *
