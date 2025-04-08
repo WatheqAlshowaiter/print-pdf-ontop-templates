@@ -17,7 +17,7 @@
                     $fields = old('data') ?? $pdfTemplate->fields;
                 @endphp
 
-                @foreach($fields as $index => $entry)
+                @forelse($fields as $index => $entry)
                     <div class="row mb-2">
                         <div class="col">
                             <select name="data[{{ $index }}][value]" class="form-control @error("data.$index.value") is-invalid @enderror">
@@ -60,11 +60,40 @@
                             <button type="button" class="btn btn-danger remove-field">X</button>
                         </div>
                     </div>
-                @endforeach
+                @empty
+                    <div class="row mb-2">
+                        <div class="col">
+                            <select name="data[0][value]" class="form-control @error('data.0.value') is-invalid @enderror">
+                                <option value="" disabled selected>Select Label</option>
+                                @foreach (\App\Enums\PdfValues::cases() as $label)
+                                    <option value="{{ $label->name }}">{{ $label->value }}</option>
+                                @endforeach
+                            </select>
+                            @error('data.0.value')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                        </div>
+                        <div class="col">
+                            <input type="number" name="data[0][x]" placeholder="X Position" class="form-control @error('data.0.x') is-invalid @enderror">
+                            @error('data.0.x')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                        </div>
+                        <div class="col">
+                            <input type="number" name="data[0][y]" placeholder="Y Position" class="form-control @error('data.0.y') is-invalid @enderror">
+                            @error('data.0.y')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                        </div>
+                        <div class="col">
+                            <button type="button" class="btn btn-danger remove-field">X</button>
+                        </div>
+                    </div>
+                @endforelse
             </div>
 
 
-            <button type="button" onclick="addField()" class="btn btn-secondary">+ Add More</button>
+            <button type="button" onclick="addField()" class="btn btn-secondary">+ Add Fields</button>
             <button type="submit" name="action" value="generate" class="btn btn-success">Generate PDF</button>
             <button type="submit" name="action" value="save" class="btn btn-primary">Save Layout</button>
         </form>
