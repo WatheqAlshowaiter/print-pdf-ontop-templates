@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Str;
 
 class PdfTemplate extends Model
@@ -20,8 +21,8 @@ class PdfTemplate extends Model
         });
     }
 
-    public function fields()
+    public function fields(): HasMany
     {
-        return $this->hasMany(PdfField::class, 'template_id');
+        return $this->hasMany(PdfTemplateField::class);
     }
 }

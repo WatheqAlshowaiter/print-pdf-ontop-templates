@@ -7,12 +7,15 @@ use App\Services\PDFGridService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use setasign\Fpdi\PdfParser\CrossReference\CrossReferenceException;
+use setasign\Fpdi\PdfParser\Filter\FilterException;
+use setasign\Fpdi\PdfParser\PdfParserException;
+use setasign\Fpdi\PdfParser\Type\PdfTypeException;
+use setasign\Fpdi\PdfReader\PdfReaderException;
 
 class PDFTemplateController extends Controller
 {
-    public function __construct(public PDFGridService $pdfGridService)
-    {
-    }
+    public function __construct(public PDFGridService $pdfGridService) {}
 
     public function index()
     {
@@ -26,6 +29,13 @@ class PDFTemplateController extends Controller
         return view('pdf_templates.create');
     }
 
+    /**
+     * @throws CrossReferenceException
+     * @throws PdfReaderException
+     * @throws PdfParserException
+     * @throws PdfTypeException
+     * @throws FilterException
+     */
     public function store(Request $request)
     {
         $request->validate([

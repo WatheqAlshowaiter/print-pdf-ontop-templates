@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Enums\PdfValues;
 use App\Models\PdfTemplate;
 use App\Services\PdfTemplatePrinterService;
 use Illuminate\Http\Request;
@@ -11,7 +10,6 @@ use setasign\Fpdi\PdfParser\Filter\FilterException;
 use setasign\Fpdi\PdfParser\PdfParserException;
 use setasign\Fpdi\PdfParser\Type\PdfTypeException;
 use setasign\Fpdi\PdfReader\PdfReaderException;
-use setasign\Fpdi\Tcpdf\Fpdi;
 
 class PrintPdfController extends Controller
 {
@@ -19,7 +17,9 @@ class PrintPdfController extends Controller
     {
         $pdfTemplate = PdfTemplate::query()->findorFail($pdfTemplateId);
 
-        return view('print-pdfs.edit', ['pdfTemplate' => $pdfTemplate]);
+        return view('print-pdfs.edit', [
+            'pdfTemplate' => $pdfTemplate->load('fields'),
+        ]);
     }
 
     /**
@@ -31,7 +31,7 @@ class PrintPdfController extends Controller
      */
     public function update($pdfTemplate, Request $request, PdfTemplatePrinterService $printer)
     {
-        PdfTemplate::query()->findorFail($pdfTemplate);
+        $pdfTemplate = PdfTemplate::query()->findOrFail($pdfTemplate);
 
         $request->validate([
             'filename' => 'required|string',
@@ -41,11 +41,24 @@ class PrintPdfController extends Controller
             'data.*.y' => ['required', 'int', 'min:0'],
         ]);
 
+        if ($request->input('action') === 'save') {
+            $pdfTemplate->fields()->delete(); // clear old layout
+
+            foreach ($request->data as $item) {
+                $pdfTemplate->fields()->create([
+                    'value' => $item['value'],
+                    'x' => $item['x'],
+                    'y' => $item['y'],
+                ]);
+            }
+
+            return back()->with('success', 'Layout saved successfully.');
+        }
 
         $pdfPath = storage_path("app/public/{$request->filename}");
         $outputPath = storage_path("app/public/data_{$request->filename}");
 
-        if (!file_exists($pdfPath)) {
+        if (! file_exists($pdfPath)) {
             return back()->with('error', 'PDF file not found.');
         }
 
@@ -60,12 +73,12 @@ class PrintPdfController extends Controller
             'QUANTITY' => [
                 10,
                 20,
-                30
+                30,
             ],
             'DESCRIPTION' => [
                 'Desc 10',
                 'Desc 20',
-                'Desc 30'
+                'Desc 30',
             ],
         ];
 

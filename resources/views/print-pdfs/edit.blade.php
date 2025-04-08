@@ -13,71 +13,60 @@
             <input type="hidden" name="filename" value="{{ $pdfTemplate->pdf_path }}">
 
             <div id="data-fields">
-                @if(old('data'))
-                    @foreach(old('data') as $index => $entry)
-                        <div class="row mb-2">
-                            <div class="col">
-                                <select name="data[{{ $index }}][value]" class="form-control @error("data.$index.value") is-invalid @enderror">
-                                    <option value="" disabled selected>Select Label</option>
-                                    @foreach (\App\Enums\PdfValues::cases() as $label)
-                                        <option value="{{ $label->name }}" {{ old("data.$index.value") == $label->value ? 'selected' : '' }}>
-                                            {{ $label->value }}
-                                        </option>
-                                    @endforeach
-                                </select>
-                                @error("data.$index.value")
-                                <div class="invalid-feedback">{{ $message }}</div>
-                                @enderror
-                            </div>
-                            <div class="col">
-                                <input type="number" name="data[{{ $index }}][x]" placeholder="X Position"
-                                       class="form-control @error("data.$index.x") is-invalid @enderror"
-                                       value="{{ old("data.$index.x") }}">
-                                @error("data.$index.x")
-                                <div class="invalid-feedback">{{ $message }}</div>
-                                @enderror
-                            </div>
-                            <div class="col">
-                                <input type="number" name="data[{{ $index }}][y]" placeholder="Y Position"
-                                       class="form-control @error("data.$index.y") is-invalid @enderror"
-                                       value="{{ old("data.$index.y") }}">
-                                @error("data.$index.y")
-                                <div class="invalid-feedback">{{ $message }}</div>
-                                @enderror
-                            </div>
-                            <div class="col">
-                                <button type="button" class="btn btn-danger remove-field">X</button>
-                            </div>
-                        </div>
-                    @endforeach
-                @else
+                @php
+                    $fields = old('data') ?? $pdfTemplate->fields;
+                @endphp
+
+                @foreach($fields as $index => $entry)
                     <div class="row mb-2">
                         <div class="col">
-                            <select name="data[0][value]" class="form-control @error("data.0.value") is-invalid @enderror">
+                            <select name="data[{{ $index }}][value]" class="form-control @error("data.$index.value") is-invalid @enderror">
                                 <option value="" disabled selected>Select Label</option>
                                 @foreach (\App\Enums\PdfValues::cases() as $label)
-                                    <option value="{{ $label->name }}" {{ old("data.0.value") == $label->value ? 'selected' : '' }}>
+                                    <option value="{{ $label->name }}"
+                                    @if(old("data.$index.value"))
+                                        {{ old("data.$index.value") == $label->name ? 'selected' : '' }}
+                                        @else
+                                        {{ isset($entry->value) && $entry->value === $label->name ? 'selected' : '' }}
+                                        @endif
+                                    >
                                         {{ $label->value }}
                                     </option>
                                 @endforeach
                             </select>
+                            @error("data.$index.value")
+                            <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
                         </div>
                         <div class="col">
-                            <input type="number" name="data[0][x]" placeholder="X Position" class="form-control">
+                            <input type="number" name="data[{{ $index }}][x]"
+                                   value="{{ old("data.$index.x") ?? ($entry->x ?? '') }}"
+                                   placeholder="X Position"
+                                   class="form-control @error("data.$index.x") is-invalid @enderror">
+                            @error("data.$index.x")
+                            <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
                         </div>
                         <div class="col">
-                            <input type="number" name="data[0][y]" placeholder="Y Position" class="form-control">
+                            <input type="number" name="data[{{ $index }}][y]"
+                                   value="{{ old("data.$index.y") ?? ($entry->y ?? '') }}"
+                                   placeholder="Y Position"
+                                   class="form-control @error("data.$index.y") is-invalid @enderror">
+                            @error("data.$index.y")
+                            <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
                         </div>
                         <div class="col">
                             <button type="button" class="btn btn-danger remove-field">X</button>
                         </div>
                     </div>
-                @endif
+                @endforeach
             </div>
 
 
             <button type="button" onclick="addField()" class="btn btn-secondary">+ Add More</button>
-            <button type="submit" class="btn btn-success">Generate PDF</button>
+            <button type="submit" name="action" value="generate" class="btn btn-success">Generate PDF</button>
+            <button type="submit" name="action" value="save" class="btn btn-primary">Save Layout</button>
         </form>
 
         <br/>

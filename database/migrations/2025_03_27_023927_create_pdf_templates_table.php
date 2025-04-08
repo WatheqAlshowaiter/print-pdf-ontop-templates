@@ -26,6 +26,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('p_d_f_templates');
+        Schema::dropIfExists('pdf_templates');
     }
 };
